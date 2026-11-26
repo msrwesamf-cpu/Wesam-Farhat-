@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>مواقيت الصلاة والطبيعة - أودنسه</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", "Tahoma", "Arial", sans-serif;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: radial-gradient(circle at top right, #122c3d, #071018 72%);
+      color: #f4f9fc;
+    }
+
+    .app-container {
+      width: 100vw;
+      height: 100vh;
+      padding: 28px 38px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    /* الشريط العلوي */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 22px;
+      padding: 16px 28px;
+    }
+
+    .city-info h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: #eaf6fa;
+    }
+
+    .city-info p {
+      font-size: 19px;
+      color: #a4c9da;
+      margin-top: 3px;
+    }
+
+    .clock-box {
+      text-align: center;
+    }
+
+    .clock-time {
+      font-size: 46px;
+      font-weight: 800;
+      color: #ffffff;
+      direction: ltr;
+    }
+
+    .clock-date {
+      font-size: 20px;
+      color: #bde0ef;
+    }
+
+    .weather-box {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 12px 22px;
+      border-radius: 18px;
+    }
+
+    .weather-temp {
+      font-size: 38px;
+      font-weight: 800;
+      color: #7ee0c3;
+      direction: ltr;
+    }
+
+    .weather-desc {
+      font-size: 20px;
+      color: #e3f1f7;
+    }
+
+    /* المحتوى الرئيسي */
+    .main-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1.35fr;
+      gap: 26px;
+      min-height: 0;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 24px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 0;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      gap: 10px;
+    }
+
+    .card-title {
+      font-size: 27px;
+      font-weight: 700;
+      color: #8ce6cb;
+    }
+
+    .badge-status {
+      font-size: 18px;
+      font-weight: 600;
+      color: #a8f3dc;
+      background: rgba(126, 224, 195, 0.14);
+      padding: 6px 14px;
+      border-radius: 12px;
+    }
+
+    /* الصلاة القادمة */
+    .next-prayer-banner {
+      background: linear-gradient(135deg, rgba(35, 130, 112, 0.36), rgba(18, 66, 86, 0.48));
+      border: 1px solid rgba(140, 230, 203, 0.35);
+      border-radius: 18px;
+      padding: 16px 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .next-label {
+      font-size: 20px;
+      color: #d2f0e6;
+    }
+
+    .next-name {
+      font-size: 30px;
+      font-weight: 800;
+      color: #ffffff;
+    }
+
+    .countdown {
+      font-size: 34px;
+      font-weight: 800;
+      color: #9bf2d7;
+      direction: ltr;
+    }
+
+    /* جدول المواقيت */
+    .prayers-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .prayer-item {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 16px;
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 23px;
+    }
+
+    .prayer-item.active {
+      background: rgba(126, 224, 195, 0.2);
+      border-color: #7ee0c3;
+    }
+
+    .prayer-time {
+      font-weight: 700;
+      color: #e8f7f2;
+      direction: ltr;
+    }
+
+    /* أزرار التحكم العربية */
+    .controls-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    button {
+      cursor: pointer;
+      border: 2px solid transparent;
+      border-radius: 15px;
+      padding: 12px 16px;
+      font-size: 20px;
+      font-weight: 700;
+      color: #071018;
+      background: #7ee0c3;
+      transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease;
+    }
+
+    button.secondary {
+      background: rgba(255, 255, 255, 0.14);
+      color: #ffffff;
+    }
+
+    button:hover,
+    button:focus {
+      background: #a9f2dc;
+      color: #071018;
+      transform: scale(1.03);
+      border-color: #ffffff;
+      box-shadow: 0 0 0 4px rgba(126, 224, 195, 0.45);
+      outline: none;
+    }
+
+    .status-note {
+      font-size: 17px;
+      color: #b4d4e3;
+      margin-top: 10px;
+      line-height: 1.4;
+    }
+
+    /* قسم الطبيعة 4K */
+    .video-frame-wrap {
+      flex: 1;
+      width: 100%;
+      min-height: 0;
+      border-radius: 18px;
+      overflow: hidden;
+      background: #04080c;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .video-buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    /* شريط المساعدة السفلي */
+    .footer-help {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 17px;
+      color: #9ec2d3;
+      padding: 0 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+
+    <!-- الشريط العلوي -->
+    <header class="top-bar">
+      <div class="city-info">
+        <h1>أودنسه • الدنمارك</h1>
+        <p>شاشة مواقيت الصلاة والطقس ومناظر الطبيعة</p>
+      </div>
+
+      <div class="clock-box">
+        <div class="clock-time" id="liveClock">--:--:--</div>
+        <div class="clock-date" id="liveDate">جاري تحميل التاريخ...</div>
+      </div>
+
+      <div class="weather-box">
+        <div>
+          <div class="weather-temp" id="weatherTemp">--°C</div>
+          <div class="weather-desc" id="weatherDesc">جاري جلب حالة الطقس...</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- المحتوى الرئيسي -->
+    <main class="main-grid">
+
+      <!-- بطاقة مواقيت الصلاة والأذان -->
+      <section class="card">
+        <div>
+          <div class="card-header">
+            <div class="card-title">مواقيت الصلاة</div>
+            <span class="badge-status" id="adhanStatus">الأذان جاهز</span>
+          </div>
+
+          <div class="next-prayer-banner">
+            <div>
+              <div class="next-label">الصلاة القادمة</div>
+              <div class="next-name" id="nextPrayerName">---</div>
+            </div>
+            <div class="countdown" id="nextPrayerCountdown">--:--:--</div>
+          </div>
+
+          <div class="prayers-list" id="prayersList"></div>
+        </div>
+
+        <div>
+          <div class="controls-row">
+            <button id="enableAudioBtn" onclick="enableAudioAndTest()">تشغيل / تجربة الأذان</button>
+            <button class="secondary" onclick="stopAdhan()">إيقاف صوت الأذان</button>
+            <button class="secondary" onclick="fetchPrayerTimes()">تحديث المواقيت</button>
+          </div>
+          <div class="status-note" id="adhanNote">
+            نصيحة: اضغط على "تشغيل / تجربة الأذان" مرة واحدة لتفعيل الصوت على التلفزيون، وبعدها سيعمل تلقائياً عند دخول وقت الصلاة.
+          </div>
+        </div>
+      </section>
+
+      <!-- بطاقة فيديوهات الطبيعة -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title">مناظر طبيعية (4K / HD)</div>
+          <span class="badge-status" id="currentSceneTitle">غابات وطبيعة هادئة</span>
+        </div>
+
+        <div class="video-frame-wrap">
+          <iframe
+            id="naturePlayer"
+            src="https://www.youtube.com/embed/BHACKCNDMW8?autoplay=1&mute=1&rel=0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen>
+          </iframe>
+        </div>
+
+        <div class="video-buttons">
+          <button onclick="changeScene('https://www.youtube.com/embed/BHACKCNDMW8?autoplay=1&mute=1&rel=0', 'غابات وطبيعة هادئة 4K')">غابات وطبيعة</button>
+          <button onclick="changeScene('https://www.youtube.com/embed/F0gpJLQWNdc?autoplay=1&mute=1&rel=0', 'البحر والشاطئ 4K')">البحر والشاطئ</button>
+          <button onclick="changeScene('https://www.youtube.com/embed/linKgt0vuuM?autoplay=1&mute=1&rel=0', 'مطر وهدوء الطبيعة 4K')">مطر وهدوء</button>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- شريط المساعدة السفلي -->
+    <footer class="footer-help">
+      <span>التحكم: استخدم أسهم الريموت للتنقل وزر (OK / الوسط) للاختيار</span>
+      <span>المدينة: Odense, Denmark</span>
+    </footer>
+
+  </div>
+
+  <!-- ملف صوت الأذان -->
+  <audio id="adhanAudio" preload="none">
+    <source src="https://download.quranicaudio.com/adhan/adhan_makkah.mp3" type="audio/mpeg" />
+  </audio>
+
+  <script>
+    const ODENSE_LAT = 55.4038;
+    const ODENSE_LON = 10.4024;
+
+    const prayerNamesAr = {
+      Fajr: "الفجر",
+      Sunrise: "الشروق",
+      Dhuhr: "الظهر",
+      Asr: "العصر",
+      Maghrib: "المغرب",
+      Isha: "العشاء"
+    };
+
+    const mainPrayersOrder = ["Fajr", "Sunrise", "Dhuhr", "Asr", "Maghrib", "Isha"];
+    let todaysTimings = null;
+    let audioUnlocked = false;
+    let playedAdhanToday = {};
+
+    function updateClock() {
+      const now = new Date();
+      document.getElementById("liveClock").textContent = now.toLocaleTimeString("da-DK", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      });
+
+      document.getElementById("liveDate").textContent = now.toLocaleDateString("ar-EG", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric"
+      });
+
+      if (todaysTimings) {
+        updateNextPrayerAndAdhan(now);
+      }
+    }
+
+    async function fetchWeather() {
+      try {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${ODENSE_LAT}&longitude=${ODENSE_LON}&current_weather=true`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.current_weather) {
+          const temp = Math.round(data.current_weather.temperature);
+          const code = data.current_weather.weathercode;
+          document.getElementById("weatherTemp").textContent = `${temp}°C`;
+          document.getElementById("weatherDesc").textContent = mapWeatherCode(code);
+        }
+      } catch (e) {
+        document.getElementById("weatherDesc").textContent = "تعذر تحديث الطقس";
+      }
+    }
+
+    function mapWeatherCode(code) {
+      if (code === 0) return "سماء صافية";
+      if ([1, 2, 3].includes(code)) return "غائم جزئياً";
+      if ([45, 48].includes(code)) return "ضباب";
+      if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code)) return "أمطار";
+      if ([71, 73, 75, 77, 85, 86].includes(code)) return "ثلوج";
+      if ([95, 96, 99].includes(code)) return "عاصفة رعدية";
+      return "طقس متقلب";
+    }
+
+    async function fetchPrayerTimes() {
+      try {
+        const today = new Date();
+        const dd = String(today.getDate()).padStart(2, "0");
+        const mm = String(today.getMonth() + 1).padStart(2, "0");
+        const yyyy = today.getFullYear();
+
+        const url = `https://api.aladhan.com/v1/timings/${dd}-${mm}-${yyyy}?latitude=${ODENSE_LAT}&longitude=${ODENSE_LON}&method=3`;
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data && data.data && data.data.timings) {
+          todaysTimings = data.data.timings;
+          renderPrayersList();
+          document.getElementById("adhanNote").textContent = "تم تحديث مواقيت الصلاة لمدينة أودنسه بنجاح.";
+        }
+      } catch (e) {
+        document.getElementById("adhanNote").textContent = "تعذر جلب مواقيت الصلاة، يرجى التحقق من اتصال الإنترنت.";
+      }
+    }
+
+    function renderPrayersList() {
+      const container = document.getElementById("prayersList");
+      container.innerHTML = "";
+
+      mainPrayersOrder.forEach((key) => {
+        const cleanTime = todaysTimings[key].split(" ")[0];
+        const div = document.createElement("div");
+        div.className = "prayer-item";
+        div.id = `prayer-${key}`;
+        div.innerHTML = `
+          <span>${prayerNamesAr[key]}</span>
+          <span class="prayer-time">${cleanTime}</span>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function updateNextPrayerAndAdhan(now) {
+      const adhanPrayers = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
+      let upcoming = null;
+
+      for (const key of mainPrayersOrder) {
+        const [hh, mm] = todaysTimings[key].split(" ")[0].split(":").map(Number);
+        const pDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hh, mm, 0);
+
+        if (pDate > now) {
+          upcoming = { key, name: prayerNamesAr[key], date: pDate };
+          break;
+        }
+      }
+
+      if (!upcoming) {
+        const [hh, mm] = todaysTimings["Fajr"].split(" ")[0].split(":").map(Number);
+        const tomorrowFajr = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, hh, mm, 0);
+        upcoming = { key: "Fajr", name: "الفجر (غداً)", date: tomorrowFajr };
+      }
+
+      document.querySelectorAll(".prayer-item").forEach((el) => el.classList.remove("active"));
+      const activeEl = document.getElementById(`prayer-${upcoming.key}`);
+      if (activeEl) activeEl.classList.add("active");
+
+      document.getElementById("nextPrayerName").textContent = upcoming.name;
+
+      const diffMs = upcoming.date - now;
+      const totalSec = Math.max(0, Math.floor(diffMs / 1000));
+      const h = String(Math.floor(totalSec / 3600)).padStart(2, "0");
+      const m = String(Math.floor((totalSec % 3600) / 60)).padStart(2, "0");
+      const s = String(totalSec % 60).padStart(2, "0");
+      document.getElementById("nextPrayerCountdown").textContent = `${h}:${m}:${s}`;
+
+      const currentHHMM = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+      const todayKey = now.toISOString().slice(0, 10);
+
+      for (const pKey of adhanPrayers) {
+        const pTime = todaysTimings[pKey].split(" ")[0];
+        const triggerId = `${todayKey}-${pKey}`;
+        if (pTime === currentHHMM && !playedAdhanToday[triggerId]) {
+          playedAdhanToday[triggerId] = true;
+          playAdhan(prayerNamesAr[pKey]);
+        }
+      }
+    }
+
+    function enableAudioAndTest() {
+      const audio = document.getElementById("adhanAudio");
+      audioUnlocked = true;
+      audio.currentTime = 0;
+      audio.play().then(() => {
+        document.getElementById("adhanStatus").textContent = "يتم تشغيل الأذان";
+        document.getElementById("adhanNote").textContent = "تم تفعيل الصوت بنجاح وسيعمل تلقائياً عند دخول وقت الصلاة.";
+      }).catch(() => {
+        document.getElementById("adhanNote").textContent = "تعذر تشغيل الصوت من الرابط حالياً، يمكننا ربط ملف صوتي مباشر.";
+      });
+    }
+
+    function stopAdhan() {
+      const audio = document.getElementById("adhanAudio");
+      audio.pause();
+      audio.currentTime = 0;
+      document.getElementById("adhanStatus").textContent = "الأذان متوقف";
+    }
+
+    function playAdhan(prayerName) {
+      document.getElementById("adhanStatus").textContent = `حان وقت أذان ${prayerName}`;
+      if (audioUnlocked) {
+        const audio = document.getElementById("adhanAudio");
+        audio.currentTime = 0;
+        audio.play().catch(() => {});
+      }
+    }
+
+    function changeScene(embedUrl, title) {
+      document.getElementById("naturePlayer").src = embedUrl;
+      document.getElementById("currentSceneTitle").textContent = title;
+    }
+
+    fetchPrayerTimes();
+    fetchWeather();
+    updateClock();
+
+    setInterval(updateClock, 1000);
+    setInterval(fetchWeather, 15 * 60 * 1000);
+  </script>
+</body>
+</html>
+
